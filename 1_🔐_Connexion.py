@@ -1,12 +1,12 @@
 import streamlit as st
 import pymysql
-from config import DB_CONFIG
 import re
 import hashlib
 import secrets
 
 # Connexion à la base de données MySQL
-db = pymysql.connect(**DB_CONFIG)
+db_config = st.secrets["mysql"]
+db = pymysql.connect(**db_config)
 cursor = db.cursor()
 
 def validate_email(email):
