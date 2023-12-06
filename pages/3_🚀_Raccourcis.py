@@ -37,7 +37,7 @@ header
       query = f"SELECT * FROM table_shortcut_{user_id}"
       cursor.execute(query)
       shortcuts = cursor.fetchall()
-      st.table(shortcuts)
+      st.dataframe(shortcuts, width=800)
       if len(shortcuts) == 0:
           st.warning("Vous n'avez aucun raccourci pour l'instant. Créer vore premier raccourci dans l'opération 'Créer un raccourci.")
 
@@ -51,7 +51,7 @@ header
 
     elif selected_options == "Modifier un raccourci":
         shortcut_id = st.number_input("Entrer l'ID du raccourci", min_value=1)
-        st.warning("L'index du raccourci se trouve sur la colonne de droite dans l'opération 'Voir mes raccourcis'. ")
+        st.warning("L'index du raccourci se trouve sur la colonne tout à gauche dans l'opération 'Voir mes raccourcis'. ")
         with st.form("modify_shortcut_form", clear_on_submit=True):
           new_shorcut_key = st.text_input(label="", value="", placeholder="Entrer le nouveau mot clé ")
           new_shorcut_letter = st.text_input(label="", value="", placeholder="Entrer la nouvelle lettre associée")
