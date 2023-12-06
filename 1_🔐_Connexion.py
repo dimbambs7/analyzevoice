@@ -95,7 +95,7 @@ header
             cursor.execute(query, values)
             user = cursor.fetchone()
             
-            salt = user['salt']  # Récupérez le sel de la base de données pour cet utilisateur
+            salt = user[8]  # Récupérez le sel de la base de données pour cet utilisateur
             hashed_password_entry = hash_password(password_entry, salt=salt)
             user = get_user(email, hashed_password_entry)
             
@@ -106,17 +106,17 @@ header
                 st.error("E-mail ou mot de passe incorrect")
                 return
             if user is not None :
-                salt = user['salt']
-                if hashed_password_entry == user['user_password']:  # Vérifiez avec le mot de passe haché stocké dans la base de données
+                salt = user[8]
+                if hashed_password_entry == user[7]:  # Vérifiez avec le mot de passe haché stocké dans la base de données
                     st.success("Connexion réussie")
-                    st.session_state.username = user['user_name']
-                    st.session_state.useremail = user['user_mail']
+                    st.session_state.username = user[1]
+                    st.session_state.useremail = user[3]
                     st.session_state.signedout = True
                     st.session_state.signout = True
-                    st.session_state['user_id'] = user['id_user']
+                    st.session_state['user_id'] = user[0]
                 else:
                     st.error('Connexion échouée')
-
+####ok ici
     def signup():
         with st.form("signup_form", clear_on_submit=True):
             user_name = st.text_input(label="", value="", placeholder="Prénom")
@@ -140,7 +140,8 @@ header
             create_user(user_name, user_surname, user_mail, user_number, user_club, user_level, user_password, salt=secrets.token_hex(16))
             cursor.execute('SELECT id_user FROM av_users')
             id_users = cursor.fetchall()
-            id = [user['id_user'] for user in id_users]
+            id = [user[0] for user in id_users]
+            #id = [user['id_user'] for user in id_users]
             nom_table = "table_shortcut_" + str(id[-1])
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {nom_table} (index_shorcut INT AUTO_INCREMENT PRIMARY KEY, shortcut_key CHAR(255), shortcut_letter CHAR(1))")
             st.success("Votre compte a été créé avec succès")

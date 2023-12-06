@@ -4,11 +4,8 @@ import pymysql
 from streamlit_extras.stoggle import stoggle
 
 # Connexion à la base de données MySQL
-db = pymysql.connect(
-    host="localhost",
-    user="root",
-    password="aimerance28",
-    database="analyze_voice",
+db_config = st.secrets["mysql"]
+db = pymysql.connect(**db_config,
     autocommit=True,
     cursorclass=pymysql.cursors.DictCursor
 )
@@ -241,7 +238,7 @@ Il est important de noter que la disponibilité des caractères spécifiques peu
          st.write("""
 Hey beta-utilisateur,
 
-Si tu rencontres un problème ou un bug lors de l'utilisation de notre application, n'hésite pas à nous contacter par e-mail à l'adresse dimbambuandy7@gmail.com. Nous sommes là pour t'aider et résoudre rapidement tous les problèmes que tu pourrais rencontrer.
+Si tu rencontres un problème ou un bug lors de l'utilisation de notre application, n'hésite pas à me contacter par e-mail à l'adresse dimbambuandy7@gmail.com. Nous sommes là pour t'aider et résoudre rapidement tous les problèmes que tu pourrais rencontrer.
 
 Décris-nous en détail le problème que tu rencontres, en fournissant autant d'informations que possible. Cela nous permettra de mieux comprendre la situation et de trouver la meilleure solution pour toi.
 

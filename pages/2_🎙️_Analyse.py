@@ -24,8 +24,8 @@ def get_shortcuts(user_id):
     
 def stt(transcript, shortcuts):
     for shortcut in shortcuts:
-        shortcut_key = shortcut['shortcut_key']
-        shortcut_letter = shortcut['shortcut_letter']
+        shortcut_key = shortcut[0]
+        shortcut_letter = shortcut[1]
         if any(shortcut_key in word for word in transcript.split()):
             Controller().press(shortcut_letter)
             Controller().release(shortcut_letter) 
@@ -82,7 +82,7 @@ header
         stop.button('⏹️ Stop', on_click=stop_listening)
         user_id = st.session_state['user_id']
         shortcuts = get_shortcuts(user_id)
-        credentials_path = "/Users/dimbambs/Desktop/Personnel/Python/Perso/AnalyzeVoice/keys.json"
+        credentials_path = "/Users/user/Desktop/personnel/python/perso/analyzevoice/keys.json"
 
         credentials = service_account.Credentials.from_service_account_file(credentials_path)
 
