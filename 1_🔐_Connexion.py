@@ -3,11 +3,12 @@ import pymysql
 import re
 import hashlib
 import secrets
+from sqlalchemy import text
+
+st.set_page_config(page_title="Bienvenue", page_icon="👋")
 
 # Connexion à la base de données MySQL
-db_config = st.secrets["mysql"]
-db = pymysql.connect(**db_config)
-cursor = db.cursor()
+conn = st.connection('mysql', type='sql')
 
 def validate_email(email):
     pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
@@ -44,18 +45,21 @@ def create_user(user_name, user_surname, user_mail, user_number, user_club, user
     hashed_password = hash_password(user_password, salt)
     query = "INSERT INTO av_users (user_name, user_surname, user_mail, user_number, user_club, user_level, user_password, salt) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
     values = (user_name, user_surname, user_mail, user_number, user_club, user_level, hashed_password, salt)
-    cursor.execute(query, values)
-    db.commit()
+    conn.query(query, values)
+    conn.commit()
     return salt
 
 def get_user(user_mail, user_password):
-    query = "SELECT * FROM av_users WHERE user_mail = %s AND user_password = %s"
-    values = (user_mail, user_password)
-    cursor.execute(query, values)
-    return cursor.fetchone()
+    query = text("SELECT * FROM av_users WHERE user_mail = :user_mail AND user_password = :user_password")
+    params = {"user_mail": user_mail, "user_password": user_password}
+
+    with conn.session as s:
+        result = s.execute(query, params)
+        user = result.fetchone()
+    
+    return user
 
 def app():
-    st.set_page_config(page_title="Bienvenue", page_icon="👋")
     st.markdown("""
 <style>
 header
@@ -90,10 +94,12 @@ header
             submit_button = st.form_submit_button("Connexion")
 
         if submit_button:
-            query = "SELECT * FROM av_users WHERE user_mail = %s"
-            values = (email,)
-            cursor.execute(query, values)
-            user = cursor.fetchone()
+            with conn.session as s:
+                query = text("SELECT * FROM av_users WHERE user_mail = :email")
+                av_users = s.execute(query, {"email": email})
+                user = av_users.fetchone()
+                #av_users = s.execute("SELECT * FROM av_users WHERE user_mail = :email", {"email": email})
+                #user = av_users.fetchone()
             
             salt = user[8]  # Récupérez le sel de la base de données pour cet utilisateur
             hashed_password_entry = hash_password(password_entry, salt=salt)
@@ -138,12 +144,12 @@ header
                 st.error("Veuillez saisir un mot de passe valide")
                 return
             create_user(user_name, user_surname, user_mail, user_number, user_club, user_level, user_password, salt=secrets.token_hex(16))
-            cursor.execute('SELECT id_user FROM av_users')
-            id_users = cursor.fetchall()
+            resultats = conn.query('SELECT id_user FROM av_users')
+            id_users = resultats.fetchall()
             id = [user[0] for user in id_users]
             #id = [user['id_user'] for user in id_users]
             nom_table = "table_shortcut_" + str(id[-1])
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS {nom_table} (index_shorcut INT AUTO_INCREMENT PRIMARY KEY, shortcut_key CHAR(255), shortcut_letter CHAR(1))")
+            conn.query(f"CREATE TABLE IF NOT EXISTS {nom_table} (index_shorcut INT AUTO_INCREMENT PRIMARY KEY, shortcut_key CHAR(255), shortcut_letter CHAR(1))")
             st.success("Votre compte a été créé avec succès")
 
     if 'signedout' not in st.session_state:
@@ -167,7 +173,6 @@ header
             st.session_state.signout = False
             st.session_state.signedout = False
             st.session_state.username = ""
-    db.close()
 
 if __name__ == "__main__":
     app()
