@@ -9,16 +9,22 @@ from google.oauth2 import service_account
 from google.cloud import speech
 import streamlit as st
 from streamlit_extras.stoggle import stoggle
-import pymysql
-from config import DB_CONFIG
+from sqlalchemy import text
 
-db = pymysql.connect(**DB_CONFIG)
-cursor = db.cursor()
+st.set_page_config(page_title="Analyse", page_icon="🎙️")
+
+# Connexion à la base de données MySQL
+conn = st.connection('mysql', type='sql')
 
 def get_shortcuts(user_id):
-    query = f"SELECT shortcut_key, shortcut_letter FROM table_shortcut_{user_id}"
-    cursor.execute(query)
-    shortcuts = cursor.fetchall()
+    query = text(f"SELECT shortcut_key, shortcut_letter FROM table_shortcut_{user_id}")
+    
+    with conn.session as s:
+        result = s.execute(query)
+        shortcuts = result.fetchall()
+    
+    #cursor.execute(query)
+    #shortcuts = cursor.fetchall()
     return shortcuts
     #return {shortcut['shortcut_key']: shortcut['shortcut_letter'] for shortcut in shortcuts}
     
@@ -33,7 +39,6 @@ def stt(transcript, shortcuts):
     return False
 
 def home():
-    st.set_page_config(page_title="Analyse", page_icon="🎙️")
     global selected_mode
     if 'run' not in st.session_state:
         st.session_state['run'] = False

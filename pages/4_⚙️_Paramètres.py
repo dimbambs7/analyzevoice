@@ -2,14 +2,10 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 import pymysql
 from streamlit_extras.stoggle import stoggle
+from sqlalchemy import text
 
 # Connexion à la base de données MySQL
-db_config = st.secrets["mysql"]
-db = pymysql.connect(**db_config,
-    autocommit=True,
-    cursorclass=pymysql.cursors.DictCursor
-)
-cursor = db.cursor()
+conn = st.connection('mysql', type='sql')
 
 if not st.session_state['signedout']:
         st.write(":red[Veuillez vous connecter]")

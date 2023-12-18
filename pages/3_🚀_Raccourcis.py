@@ -1,15 +1,18 @@
 import streamlit as st
-import pymysql
-from config import DB_CONFIG
+from sqlalchemy import text
+
+
+st.set_page_config(page_title="Raccourcis", page_icon="🚀")
 
 # Connexion à la base de données MySQL
-db = pymysql.connect(**DB_CONFIG)
-cursor = db.cursor()
+conn = st.connection('mysql', type='sql')
+#db_config = st.secrets["mysql"]
+#db = pymysql.connect(**db_config)
+#cursor = db.cursor()
 
 if not st.session_state['signedout']:
         st.write(":red[Veuillez vous connecter]")
 else:
-    st.set_page_config(page_title="Raccourcis", page_icon="🚀")
     st.markdown("""
 <style>
 header
@@ -34,20 +37,22 @@ header
 
     if selected_options == "Voir mes raccourcis":
       st.text("Vos raccourcis :")
-      query = f"SELECT * FROM table_shortcut_{user_id}"
-      cursor.execute(query)
-      shortcuts = cursor.fetchall()
-      st.dataframe(shortcuts, width=800)
-      if len(shortcuts) == 0:
-          st.warning("Vous n'avez aucun raccourci pour l'instant. Créer vore premier raccourci dans l'opération 'Créer un raccourci.")
+      query = text(f"SELECT * FROM table_shortcut_{user_id}")
+      with conn.session as s:
+           result = s.execute(query)
+           shortcuts = result.fetchall()
+           st.dataframe(shortcuts, width=800)
+           if len(shortcuts) == 0:
+               st.warning("Vous n'avez aucun raccourci pour l'instant. Créer vore premier raccourci dans l'opération 'Créer un raccourci.")
 
     elif selected_options == "Supprimer un raccourci":
          shortcut_id = st.number_input("Entrer l'index du raccourci", min_value=1)
          st.warning("L'index du raccourci se trouve sur la colonne de gauche dans l'opération 'Voir mes raccourcis'. ")
          if st.button("Supprimer"):
-                  query = f"DELETE FROM table_shortcut_{user_id} WHERE index_shortcut = {shortcut_id}"
-                  cursor.execute(query)
-                  st.success("Votre raccourci a été supprimé")
+                with conn.session as s:
+                    query = text(f"DELETE FROM table_shortcut_{user_id} WHERE index_shortcut = {shortcut_id}")
+                    s.execute(query)
+                st.success("Votre raccourci a été supprimé")
 
     elif selected_options == "Modifier un raccourci":
         shortcut_id = st.number_input("Entrer l'ID du raccourci", min_value=1)
@@ -57,9 +62,10 @@ header
           new_shorcut_letter = st.text_input(label="", value="", placeholder="Entrer la nouvelle lettre associée")
           submit_button = st.form_submit_button("Modifier")
         if submit_button:
-             query = f"UPDATE table_shortcut_{user_id} SET shortcut_key = '{new_shorcut_key}', shortcut_letter = '{new_shorcut_letter}' WHERE index_shortcut = {shortcut_id}"
-             cursor.execute(query)
-             st.success("Votre raccourci a été modifié")
+            with conn.session as s:
+                query = text(f"UPDATE table_shortcut_{user_id} SET shortcut_key = '{new_shorcut_key}', shortcut_letter = '{new_shorcut_letter}' WHERE index_shortcut = {shortcut_id}")
+                s.execute(query,{"new_shortcut_key": new_shorcut_key , "new_shortcut_letter": new_shorcut_letter, "shortcut_id": shortcut_id})
+            st.success("Votre raccourci a été modifié")
 
     elif selected_options == "Créer un raccourci":
      with st.form("create_shortcut_form", clear_on_submit=True):
@@ -69,7 +75,7 @@ header
           st.warning("Seulement une seule lettre est acceptée et n'utilisez pas deux fois la même lettre.")
 
           if submit_button:
-               query = f"INSERT INTO table_shortcut_{user_id} (shortcut_key, shortcut_letter) VALUES ('{shorcut_key}', '{shortcut_letter}')"
-               cursor.execute(query)
-               db.commit()
-               st.success("Votre raccourci a été créé !")
+               with conn.session as s:
+                   query = text(f"INSERT INTO table_shortcut_{user_id} (shortcut_key, shortcut_letter) VALUES ('{shorcut_key}', '{shortcut_letter}')")
+                   s.execute(query, {"shortcut_key": shorcut_key, "shortcut_letter": shortcut_letter})
+                   st.success("Votre raccourci a été créé !")

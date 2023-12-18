@@ -1,5 +1,4 @@
 import streamlit as st
-import pymysql
 import re
 import hashlib
 import secrets
@@ -43,10 +42,11 @@ def hash_password(password, salt):
 def create_user(user_name, user_surname, user_mail, user_number, user_club, user_level, user_password, salt):
     salt = secrets.token_hex(16)
     hashed_password = hash_password(user_password, salt)
-    query = "INSERT INTO av_users (user_name, user_surname, user_mail, user_number, user_club, user_level, user_password, salt) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-    values = (user_name, user_surname, user_mail, user_number, user_club, user_level, hashed_password, salt)
-    conn.query(query, values)
-    conn.commit()
+    
+    with conn.session as s :
+        query = text("INSERT INTO av_users (user_name, user_surname, user_mail, user_number, user_club, user_level, user_password, salt) VALUES (:name, :surname, :email, :number, :club, :level, :password, :salt)")
+        s.execute(query, {"name": user_name, "surname": user_surname, "email": user_mail, "number": user_number, "club": user_club, "level": user_level, "password": hashed_password, "salt": salt})
+    
     return salt
 
 def get_user(user_mail, user_password):
@@ -144,12 +144,22 @@ header
                 st.error("Veuillez saisir un mot de passe valide")
                 return
             create_user(user_name, user_surname, user_mail, user_number, user_club, user_level, user_password, salt=secrets.token_hex(16))
-            resultats = conn.query('SELECT id_user FROM av_users')
-            id_users = resultats.fetchall()
-            id = [user[0] for user in id_users]
+            
+            with conn.session as s:
+                query_select = text('SELECT id_user FROM av_users ORDER BY id_user DESC LIMIT 1')
+                result = s.execute(query_select)
+                user_id = result.fetchone()[0]
+                
+                nom_table = f"table_shortcut_{user_id}"
+
+                query_create_table = text(f"CREATE TABLE IF NOT EXISTS {nom_table} (index_shorcut INT AUTO_INCREMENT PRIMARY KEY, shortcut_key CHAR(255), shortcut_letter CHAR(1))")
+                s.execute(query_create_table)
+
+            #id_users = result.fetchall()
+            #id = [user[0] for user in id_users]
             #id = [user['id_user'] for user in id_users]
-            nom_table = "table_shortcut_" + str(id[-1])
-            conn.query(f"CREATE TABLE IF NOT EXISTS {nom_table} (index_shorcut INT AUTO_INCREMENT PRIMARY KEY, shortcut_key CHAR(255), shortcut_letter CHAR(1))")
+            #nom_table = "table_shortcut_" + str(id[-1])
+            #conn.query(f"CREATE TABLE IF NOT EXISTS {nom_table} (index_shorcut INT AUTO_INCREMENT PRIMARY KEY, shortcut_key CHAR(255), shortcut_letter CHAR(1))")
             st.success("Votre compte a été créé avec succès")
 
     if 'signedout' not in st.session_state:
