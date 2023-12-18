@@ -1,5 +1,3 @@
-# Note: mysql-client must be installed system-wide before deploying to Streamlit Cloudprotobuf==4.25.1
-mysqlclient==2.2.0
 PyAudio==0.2.14
 PyMySQL==1.1.0
 pynput==1.7.6
