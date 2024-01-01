@@ -6,7 +6,6 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import queue
 import keyboard as kb
-from pynput.keyboard import Controller
 from google.cloud import speech_v1p1beta1 as speech
 from google.oauth2 import service_account
 from google.cloud import speech
