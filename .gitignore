@@ -1,7 +1,11 @@
+<<<<<<< HEAD
 .DS_Store
 venv
 .streamlit
 __pycache__/
 secrets.toml
 config.py
+=======
+.streamlit
+>>>>>>> 3441968 (Premier commit)
 venv/

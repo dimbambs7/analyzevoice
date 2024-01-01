@@ -2,6 +2,11 @@ from __future__ import division
 import re
 import sys
 import pyaudio
+<<<<<<< HEAD
+=======
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+>>>>>>> 3441968 (Premier commit)
 import queue
 from pynput.keyboard import Controller
 from google.cloud import speech_v1p1beta1 as speech
@@ -9,6 +14,7 @@ from google.oauth2 import service_account
 from google.cloud import speech
 import streamlit as st
 from streamlit_extras.stoggle import stoggle
+<<<<<<< HEAD
 from sqlalchemy import text
 
 st.set_page_config(page_title="Analyse", page_icon="🎙️")
@@ -32,6 +38,41 @@ def stt(transcript, shortcuts):
     for shortcut in shortcuts:
         shortcut_key = shortcut[0]
         shortcut_letter = shortcut[1]
+=======
+
+speech_secrets = st.secrets["connections_gstt"]
+secrets_dict = st.secrets["connections_gsheets"]
+
+st.set_page_config(page_title="Analyse", page_icon="🎙️")
+
+# Connexion à la base de donnée GSheets
+
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_dict(secrets_dict, scope)
+client = gspread.authorize(creds)
+
+def get_shortcuts(user_mail):
+
+    sheet_title = f"Shortcut_{user_mail}"
+
+    # Ouvrir la feuille de calcul principale
+    main_sheet = client.open("Database")
+
+    # Accéder au worksheet correspondant à l'utilisateur
+    worksheet = main_sheet.worksheet(sheet_title)
+
+    # Récupérer toutes les lignes de la feuille de calcul sous forme de dictionnaires
+    all_records = worksheet.get_all_records()
+
+    shortcuts = [{k: v for k, v in record.items() if k in ['shortcut_key', 'shortcut_letter']} for record in all_records]
+
+    return shortcuts
+    
+def stt(transcript, shortcuts):
+    for shortcut in shortcuts:
+        shortcut_key = shortcut['shortcut_key']
+        shortcut_letter = shortcut['shortcut_letter']
+>>>>>>> 3441968 (Premier commit)
         if any(shortcut_key in word for word in transcript.split()):
             Controller().press(shortcut_letter)
             Controller().release(shortcut_letter) 
@@ -43,6 +84,11 @@ def home():
     if 'run' not in st.session_state:
         st.session_state['run'] = False
 
+<<<<<<< HEAD
+=======
+    user_mail = st.session_state.useremail
+
+>>>>>>> 3441968 (Premier commit)
     def start_listening():
         st.session_state['run'] = True
 
@@ -73,7 +119,11 @@ header
         st.subheader("Mode")
         stoggle(
             "Précision sur les modes !",
+<<<<<<< HEAD
             """Le mode rapide ☄️ : Il permet d'avoir une retranscription rapide de ce que vous dit mais il est moins précis.<br>Le mode précis 🎯 : Il permet d'avoir une retranscription précise de ce que vous dîtes mais il est moins rapide.""",
+=======
+            """<br>Le mode rapide ☄️ : Il permet d'avoir une retranscription rapide de ce que vous dit mais il est moins précis.<br><br>Le mode précis 🎯 : Il permet d'avoir une retranscription précise de ce que vous dîtes mais il est moins rapide.""",
+>>>>>>> 3441968 (Premier commit)
         )
         st.write("")
         mode_options = ["Rapide ☄️", "Précis 🎯"]
@@ -81,6 +131,7 @@ header
         selected_mode = mode
         st.write(f"Le mode {mode} est activé !")
         st.write("---")
+<<<<<<< HEAD
         st.write("Débutez votre analyse en cliquant sur le bouton Start. Lorsque vous avez fini, veuillez cliquer sur Stop.")
         start, stop = st.columns(2)
         start.button('⏯️ Start', on_click=start_listening)
@@ -90,6 +141,16 @@ header
         credentials_path = "/Users/user/Desktop/personnel/python/perso/analyzevoice/keys.json"
 
         credentials = service_account.Credentials.from_service_account_file(credentials_path)
+=======
+        st.write("Débutez votre analyse en cliquant sur le bouton Start. Lorsque vous avez fini, veuillez cliquer sur Stop. Et dites STOP pour que l'application n'utilise plus votre micro.")
+        start, stop = st.columns(2)
+        start.button('⏯️ Start', on_click=start_listening)
+        stop.button('⏹️ Stop', on_click=stop_listening)
+        shortcuts = get_shortcuts(user_mail)
+        #credentials_path = "/Users/user/Desktop/site2/keys/keys.json"
+
+        credentials = service_account.Credentials.from_service_account_info(speech_secrets)
+>>>>>>> 3441968 (Premier commit)
 
         client = speech.SpeechClient(credentials=credentials)
 
@@ -262,4 +323,8 @@ header
 
         main()
 
+<<<<<<< HEAD
 home()
+=======
+home()
+>>>>>>> 3441968 (Premier commit)

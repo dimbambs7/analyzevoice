@@ -1,11 +1,32 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
+<<<<<<< HEAD
 import pymysql
 from streamlit_extras.stoggle import stoggle
 from sqlalchemy import text
 
 # Connexion à la base de données MySQL
 conn = st.connection('mysql', type='sql')
+=======
+from streamlit_extras.stoggle import stoggle
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+from streamlit_option_menu import option_menu
+import hashlib
+
+# Utiliser st.secrets pour accéder aux informations sensibles
+secrets_dict = st.secrets["connections_gsheets"]
+
+def hash_password(password, salt):
+    hashed_password = hashlib.sha256((password + salt).encode('utf-8')).hexdigest()
+    return hashed_password
+
+
+# Connexion à la base de données GSheets
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_dict(secrets_dict, scope)
+client = gspread.authorize(creds)
+>>>>>>> 3441968 (Premier commit)
 
 if not st.session_state['signedout']:
         st.write(":red[Veuillez vous connecter]")
@@ -34,6 +55,7 @@ header
           options=["Informations", "FAQ", "Contact", "À propos"],
           orientation="horizontal"
     )
+<<<<<<< HEAD
     user_id = st.session_state['user_id']
       
     if selected == "Informations":
@@ -60,11 +82,51 @@ header
                     st.success("Le prénom a été modifié avec succès.")
 
         if selected_options == "Modifier nom":
+=======
+    user_email = st.session_state['useremail']
+
+    sheet = client.open("Database")
+
+    if selected == "Informations":
+        user_email_column = 3
+        user_worksheet = sheet.get_worksheet(0)
+        user_info = None
+
+        for row in range(1, user_worksheet.row_count):
+            if user_worksheet.cell(row, user_email_column).value == user_email:
+                user_info = user_worksheet.row_values(row)
+                break
+
+        if user_info:
+            st.markdown(f"Prénom : {user_info[0]}")
+            st.write(f"Nom : {user_info[1]}")
+            st.write(f"Email : {user_info[2]}")
+            st.write(f"Votre numéro : {user_info[3]}")
+            st.write(f"Votre club : {user_info[5]}")
+            st.write(f"Niveau de votre équipe : {user_info[6]}")
+            st.write("---")
+            options = ["Prénom", "Nom", "Téléphone", "Club", "Mot de passe", "Niveau équipe"]
+            selected_options = st.selectbox("Modifier vos informations :", options)
+        else:
+            st.warning("Utilisateur non trouvé")
+        
+        if selected_options == "Prénom":
+            with st.form("prenom_form", clear_on_submit=True):
+                new_name = st.text_input(label="", placeholder="Nouveau prénom")
+                submit_button = st.form_submit_button("Modifier")
+
+                if submit_button:
+                    user_worksheet.update_cell(user_email, 1, new_name)  # Mise à jour de la colonne correspondante
+                    st.success("Le prénom a été modifié avec succès.")
+        
+        if selected_options == "Nom":
+>>>>>>> 3441968 (Premier commit)
             with st.form("nom_form", clear_on_submit=True):
                 new_surname = st.text_input(label="", placeholder="Nouveau nom")
                 submit_button = st.form_submit_button("Modifier")
                 
                 if submit_button:
+<<<<<<< HEAD
                     query = f"UPDATE av_users SET user_surname = '{new_surname}' WHERE id_user = {user_id}"
                     cursor.execute(query)
                     st.success("Le nom a été modifié avec succès.")
@@ -81,32 +143,56 @@ header
                     st.success("L'email a été modifié avec succès.")
 
         if selected_options == "Modifier téléphone":
+=======
+                    cell = user_worksheet.find(user_email)
+                    user_worksheet.update_cell(cell.row, 2, new_surname)  # Mise à jour de la colonne correspondante
+                    st.success("Le nom a été modifié avec succès.")
+
+        if selected_options == "Téléphone":
+>>>>>>> 3441968 (Premier commit)
             with st.form("telephone_form", clear_on_submit=True):
                 new_number = st.text_input(label="", placeholder="Nouveau numéro de téléphone")
                 submit_button = st.form_submit_button("Modifier")
                 
                 if submit_button:
+<<<<<<< HEAD
                     query = f"UPDATE av_users SET user_number = '{new_number}' WHERE id_user = {user_id}"
                     cursor.execute(query)
                     st.success("Le numéro de téléphone a été modifié avec succès.")
 
         if selected_options == "Modifier club":
+=======
+                    cell = user_worksheet.find(user_email)
+                    user_worksheet.update_cell(cell.row, 4, new_number)  # Mise à jour de la colonne correspondante
+                    st.success("Le numéro de téléphone a été modifié avec succès.")
+
+        if selected_options == "Club":
+>>>>>>> 3441968 (Premier commit)
             with st.form("club_form", clear_on_submit=True):
                 new_club = st.text_input(label="", placeholder="Nouveau club")
                 submit_button = st.form_submit_button("Modifier")
                 
                 if submit_button:
+<<<<<<< HEAD
                     query = f"UPDATE av_users SET user_club = '{new_club}' WHERE id_user = {user_id}"
                     cursor.execute(query)
                     st.success("Le club a été modifié avec succès.")
 
         if selected_options == "Modifier mot de passe":
+=======
+                    cell = user_worksheet.find(user_email)
+                    user_worksheet.update_cell(cell.row, 6, new_club)  # Mise à jour de la colonne correspondante
+                    st.success("Le club a été modifié avec succès.")
+
+        if selected_options == "Mot de passe":
+>>>>>>> 3441968 (Premier commit)
             with st.form("mot_de_passe_form", clear_on_submit=True):
                 password1 = st.text_input(label="", placeholder="Nouveau mot de passe", type="password")
                 password2 = st.text_input(label="", placeholder="Confirmer le mot de passe", type="password")
                 submit_button = st.form_submit_button("Modifier")
                 
                 if submit_button:
+<<<<<<< HEAD
                      if password1 == '' and password2 == '':
                         st.warning("Veuillez saisir le nouveaux not de passe")
                      else:
@@ -126,6 +212,28 @@ header
                     query = f"UPDATE av_users SET user_level = '{new_level}' WHERE id_user = {user_id}"
                     cursor.execute(query)
                     st.success("Le niveau de l'équipe a été modifié avec succès.")
+=======
+                    if password1 == '' and password2 == '':
+                        st.warning("Veuillez saisir le nouveaux not de passe")
+                    elif password1 != password2:
+                     st.error("Les mots de passe ne correspondent pas.") 
+                    else:
+                        cell = user_worksheet.find(user_email)
+                        hashed_password = hash_password(password1, user_worksheet.cell(cell.row, 8).value)  # Utilisez la colonne correspondante pour le sel
+                        user_worksheet.update_cell(cell.row, 7, hashed_password)  # Mise à jour de la colonne correspondante
+                        st.success("Le mot de passe a été modifié avec succès.")
+
+    
+        if selected_options == "Niveau équipe":
+                with st.form("niv_equipe_form", clear_on_submit=True):
+                    new_level = st.text_input(label="", placeholder="Niv. équipe")
+                    submit_button = st.form_submit_button("Modifier")
+                    
+                    if submit_button:
+                        cell = user_worksheet.find(user_email)
+                        user_worksheet.update_cell(cell.row, 6, new_level)  # Mise à jour de la colonne correspondante
+                        st.success("Le niveau de l'équipe a été modifié avec succès.")
+>>>>>>> 3441968 (Premier commit)
 
         
     elif selected == "FAQ":
@@ -255,4 +363,8 @@ L'équipe de support technique
           st.write("---")
           st.subheader("Hey! Je m'apelle Andy 👋")
           st.write("""Passionné de handball, de sport en général et d'informatique, je suis en quête perpétuelle de nouvelles expériences et de défis pour continuer à grandir tant sur le plan personnel que professionnel.""")
+<<<<<<< HEAD
           st.write("[En savoir un peu plus sur moi](https://www.linkedin.com/in/andy-dimbambu/)")
+=======
+          st.write("[En savoir un peu plus sur moi](https://www.linkedin.com/in/andy-dimbambu/)")
+>>>>>>> 3441968 (Premier commit)
