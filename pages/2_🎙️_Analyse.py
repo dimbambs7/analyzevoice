@@ -5,6 +5,7 @@ import pyaudio
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import queue
+import keyboard as kb
 from pynput.keyboard import Controller
 from google.cloud import speech_v1p1beta1 as speech
 from google.oauth2 import service_account
@@ -45,8 +46,8 @@ def stt(transcript, shortcuts):
         shortcut_key = shortcut['shortcut_key']
         shortcut_letter = shortcut['shortcut_letter']
         if any(shortcut_key in word for word in transcript.split()):
-            Controller().press(shortcut_letter)
-            Controller().release(shortcut_letter) 
+            kb.press(shortcut_letter)
+            #Controller().release(shortcut_letter) 
             return True
     return False
 
